@@ -1,43 +1,65 @@
 <template>
   <div id="app-wrapper" class="min-h-screen bg-gray-100">
-    <header class="bg-white shadow-md">
-      <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
 
-        <div class="text-xl font-bold text-blue-600">
-          Мой Проект
-        </div>
+    <Menubar :model="items">
 
-        <div class="flex items-center space-x-4">
+      <template #start>
+        <span>
+          <img src="/favicon.ico" width="40" alt="Icon" class="mr-4"/>
+        </span>
+      </template>
 
-          <div v-if="isAuthenticated" class="flex space-x-3">
-            <router-link to="/" class="px-3 py-2 rounded hover:bg-gray-200">Главная</router-link>
-            <router-link to="/houses" class="px-3 py-2 rounded hover:bg-gray-200">Дома</router-link>
-            <router-link to="/meetings" class="px-3 py-2 rounded hover:bg-gray-200">Собрания</router-link>
-          </div>
+      <template #item="{ item }">
+        <router-link v-if="item.route" :to="item.route" class="flex items-center p-2">
+          <span :class="item.icon" />
+          <span class="ml-2">{{ item.label }}</span>
+        </router-link>
+      </template>
+
+      <template #end>
+        <div class="flex items-center gap-2">
 
           <div v-if="isAuthenticated && user" class="flex items-center space-x-2">
+            <span class="pi pi-fw pi-user mr-2"/>
             <span>Привет, {{ user.name }}</span>
-            <button @click="logout" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Выйти</button>
+            <Button @click="logout" label="Выйти" icon="pi pi-sign-out" class="ml-4" severity="danger" text />
           </div>
 
           <div v-else>
             <form @submit.prevent="login" class="flex items-center space-x-2">
-              <div>
-                <label for="email" class="sr-only">Email</label>
-                <input v-model="email" type="email" id="email" placeholder="Email" required class="px-2 py-1 border rounded"/>
-              </div>
-              <div>
-                <label for="password" class="sr-only">Пароль</label>
-                <input v-model="password" type="password" id="password" placeholder="Пароль" required class="px-2 py-1 border rounded"/>
-              </div>
-              <button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Войти</button>
+
+              <InputText
+                v-model="email"
+                type="email"
+                id="email"
+                required
+                placeholder="Логин"
+                class="sm:w-auto"
+                :class="{ 'p-invalid': authError }"
+              />
+
+              <InputText
+                v-model="password"
+                type="password"
+                id="password"
+                required
+                placeholder="Пароль"
+                class="sm:w-auto"
+                :class="{ 'p-invalid': authError }"
+              />
+
+              <Button type="submit" label="Войти" icon="pi pi-sign-in" />
+
             </form>
-            <p v-if="authError" class="error text-red-500 text-sm mt-1">{{ authError }}</p>
+
+            <div class="ml-2" v-if="authError">
+              <small class="error text-red-500">{{ authError }}</small>
+            </div>
+
           </div>
         </div>
-
-      </nav>
-    </header>
+      </template>
+    </Menubar>
 
     <main class="container mx-auto p-4">
       <router-view />
@@ -50,11 +72,39 @@
 import { useAuthStore } from "@/stores/authStore.js";
 import { mapState, mapActions } from 'pinia';
 
+import Menubar from 'primevue/menubar';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+
 export default {
+  components: {
+    Menubar,
+    Button,
+    InputText
+  },
+
   data() {
     return {
       email: "",
       password: "",
+
+      items: [
+        {
+          label: 'Главная страница',
+          icon: 'pi pi-fw pi-home',
+          route: '/'
+        },
+        {
+          label: 'Дома',
+          icon: 'pi pi-fw pi-building',
+          route: '/houses'
+        },
+        {
+          label: 'Собрания',
+          icon: 'pi pi-fw pi-users',
+          route: '/meetings'
+        },
+      ]
     };
   },
   computed: {
@@ -67,8 +117,10 @@ export default {
       const authStore = useAuthStore();
       await authStore.login({ email: this.email, password: this.password });
 
-      this.email = "";
-      this.password = "";
+      if (authStore.isAuthenticated) {
+        this.email = "";
+        this.password = "";
+      }
     },
   },
   mounted() {
@@ -76,24 +128,25 @@ export default {
     const authStore = useAuthStore();
 
     if (token && !authStore.isAuthenticated) {
-
       authStore.token = token;
       authStore.isAuthenticated = true;
-      authStore.getUser(); // и загружаем данные пользователя
+      authStore.getUser();
     }
   },
 };
 </script>
 
 <style scoped>
-
 .router-link-exact-active {
   font-weight: bold;
   color: #2563eb;
-  background-color: #ebf4ff;
 }
 
 .error {
   color: red;
+}
+
+:deep(.p-invalid) {
+  border-color: #ef4444 !important;
 }
 </style>
