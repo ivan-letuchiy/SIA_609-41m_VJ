@@ -22,7 +22,7 @@
           <div v-if="isAuthenticated && user" class="flex items-center space-x-2">
             <span class="pi pi-fw pi-user mr-2"/>
             <span>Привет, {{ user.name }}</span>
-            <Button @click="logout" label="Выйти" icon="pi pi-sign-out" class="ml-4" severity="danger" text />
+            <Button @click="logout" label="Выйти" icon="pi pi-sign-out" class="ml-4" text />
           </div>
 
           <div v-else>
