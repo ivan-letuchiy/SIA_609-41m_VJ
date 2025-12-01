@@ -1,11 +1,13 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
-import './output.css'
+import './style.css'
 
 import 'primeicons/primeicons.css';
 
 import PrimeVue from 'primevue/config';
+// 👇 1. Импортируем сервис уведомлений
+import ToastService from 'primevue/toastservice';
 
 import Aura from '@primevue/themes/aura';
 
@@ -25,5 +27,8 @@ app.use(PrimeVue, {
     }
   }
 });
+
+// 👇 2. Подключаем сервис к приложению
+app.use(ToastService);
 
 app.mount('#app')

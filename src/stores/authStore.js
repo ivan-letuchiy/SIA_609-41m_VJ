@@ -11,6 +11,11 @@ export const useAuthStore = defineStore('auth', {
     authError: "",
   }),
 
+  // ДОБАВЛЕНО: Геттеры
+  getters: {
+    isAdmin: (state) => state.user?.role === 'admin',
+  },
+
   actions: {
     async login(credentials) {
       this.authError = "";
@@ -25,46 +30,29 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         if (error.response) {
           this.authError = error.response.data.message || "Ошибка входа";
-        } else if (error.request) {
-          this.authError = "Сервер не отвечает";
         } else {
-          this.authError = "Произошла неизвестная ошибка";
+          this.authError = "Сервер не отвечает";
         }
-        console.error("Login error:", error);
       }
     },
 
     async getUser() {
       this.authError = "";
-
       if (!this.token) {
         this.isAuthenticated = false;
         return;
       }
 
       try {
-        const response = await axios.get(`${BASE_URL}/user`, {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+        const response = await axios.get(`${BASE_URL}/users`, {
+          headers: { Authorization: `Bearer ${this.token}` }
         });
-
         this.user = response.data;
         this.isAuthenticated = true;
-
       } catch (error) {
         if (error.response && error.response.status === 401) {
           this.logout();
         }
-
-        if (error.response) {
-          this.authError = error.response.data.message || "Не удалось получить данные пользователя";
-        } else if (error.request) {
-          this.authError = "Сервер не отвечает";
-        } else {
-          this.authError = "Произошла неизвестная ошибка";
-        }
-        console.error("Get user error:", error);
       }
     },
 
@@ -73,6 +61,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;
       this.isAuthenticated = false;
       localStorage.removeItem('token');
+      window.location.href = '/';
     }
   }
 })
